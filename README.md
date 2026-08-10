@@ -1,10 +1,20 @@
-# FotMob Menü Çubuğu
+# FotMob Menu Bar
 
-Favori takımların bugünkü maçlarını macOS menü çubuğunda gösteren küçük bir SwiftUI uygulaması. Canlı maçta 30 saniyede, diğer zamanlarda 2 dakikada bir yenilenir ve skor yükseldiğinde macOS bildirimi gönderir.
+A minimal native macOS menu bar app for following live football scores and favorite teams. It refreshes every 30 seconds while matches are live, sends goal notifications, and lets you pin a live match score to the menu bar.
 
-## Derleme
+## Features
 
-macOS 13 veya üzeri ve Swift 6 gerekir. Tam Xcode zorunlu değildir.
+- Live scores and match minutes
+- Favorite team summaries with previous and upcoming fixtures
+- Goal notifications for favorite teams
+- Selectable live score widget in the menu bar
+- Today's matches from Europe's Top 5 leagues
+- Dark minimal interface
+- Direct links to FotMob match pages
+
+## Build
+
+Requires macOS 13 or later and Swift 6. A full Xcode installation is not required.
 
 ```sh
 cd ~/FotMobMenuBar
@@ -12,12 +22,12 @@ cd ~/FotMobMenuBar
 open dist/FotMobMenuBar.app
 ```
 
-İlk açılışta bildirim izni verin. Uygulama yalnızca menü çubuğunda görünür; futbol topu simgesinden takım arayıp favori ekleyebilirsiniz.
+Grant notification permission on first launch. The app runs exclusively in the menu bar; open the FotMob icon to search for teams and manage favorites.
 
-## Oturum Açınca Başlatma
+## Launch at Login
 
-Uygulamayı bir kez `Applications` klasörüne taşıdıktan sonra macOS **Sistem Ayarları > Genel > Giriş Öğeleri** bölümünden ekleyebilirsiniz.
+After moving the app to the `Applications` folder, add it from **System Settings > General > Login Items**.
 
-## Veri Kaynağı
+## Data Source
 
-Veriler FotMob web istemcisinin herkese açık olarak erişebildiği uçlardan okunur. FotMob resmi bir genel API sunmadığı için bu uçlar ileride değişebilir. Uygulama FotMob ile bağlantılı veya FotMob tarafından desteklenen resmi bir ürün değildir.
+Data is retrieved from endpoints publicly accessible to the FotMob web client. FotMob does not provide an official public API, so these endpoints may change in the future. This project is not affiliated with or endorsed by FotMob.
