@@ -12,6 +12,13 @@ A minimal native macOS menu bar app for following live football scores and favor
 - Dark minimal interface
 - Direct links to FotMob match pages
 
+## Screenshots
+<img width="424" height="530" alt="Screenshot 2026-08-10 at 16 11 50" src="https://github.com/user-attachments/assets/8a3d0be9-01b5-4d0d-adb6-b517ffa95ba2" />
+
+<img width="684" height="32" alt="Screenshot 2026-08-10 at 16 12 07" src="https://github.com/user-attachments/assets/e3aa4714-f99a-4d16-85b1-e2a2dd7893fd" />
+
+
+
 ## Build
 
 Requires macOS 13 or later and Swift 6. A full Xcode installation is not required.
