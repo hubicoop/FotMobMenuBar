@@ -11,6 +11,7 @@ final class MatchStore: ObservableObject {
     @Published private(set) var favoriteSummaries: [FavoriteTeamSummary] = []
     @Published private(set) var leagueNames: [Int: String] = [:]
     @Published private(set) var searchResults: [TeamSuggestion] = []
+    @Published private(set) var widgetMatchID: Int?
     @Published private(set) var isSearching = false
     @Published private(set) var isRefreshing = false
     @Published private(set) var errorMessage: String?
@@ -35,6 +36,7 @@ final class MatchStore: ObservableObject {
     init(client: FotMobClient = FotMobClient(), defaults: UserDefaults = .standard) {
         self.client = client
         self.defaults = defaults
+        widgetMatchID = defaults.object(forKey: Keys.widgetMatchID) as? Int
         notificationsEnabled = defaults.object(forKey: Keys.notifications) as? Bool ?? true
         if let data = defaults.data(forKey: Keys.favorites),
            let teams = try? JSONDecoder().decode([FavoriteTeam].self, from: data) {
@@ -48,7 +50,8 @@ final class MatchStore: ObservableObject {
     }
 
     var menuTitle: String {
-        guard let match = matches.first(where: \.isLive) else { return "" }
+        guard let widgetMatchID,
+              let match = matches.first(where: { $0.id == widgetMatchID && $0.isLive }) else { return "" }
         return "\(abbreviation(match.home.name)) \(match.home.score ?? 0)-\(match.away.score ?? 0) \(abbreviation(match.away.name)) \(match.minuteText)"
     }
 
@@ -81,6 +84,10 @@ final class MatchStore: ObservableObject {
             await processGoals(in: favorites)
             matches = allMatches
             liveMatches = sorted(allMatches.filter(\.isLive))
+            if let widgetMatchID, !liveMatches.contains(where: { $0.id == widgetMatchID }) {
+                self.widgetMatchID = nil
+                defaults.removeObject(forKey: Keys.widgetMatchID)
+            }
             let liveMatchIDs = Set(liveMatches.map(\.id))
             topLeagueMatches = sorted(feed.topLeagueMatches.filter { !liveMatchIDs.contains($0.id) })
             let topMatchIDs = Set(topLeagueMatches.map(\.id))
@@ -161,8 +168,18 @@ final class MatchStore: ObservableObject {
                     NSWorkspace.shared.open(url)
                 }
             } catch {
-                errorMessage = "Maç bağlantısı FotMob'dan alınamadı."
+                errorMessage = "Could not load the match link from FotMob."
             }
+        }
+    }
+
+    func toggleWidget(for match: Match) {
+        if widgetMatchID == match.id {
+            widgetMatchID = nil
+            defaults.removeObject(forKey: Keys.widgetMatchID)
+        } else {
+            widgetMatchID = match.id
+            defaults.set(match.id, forKey: Keys.widgetMatchID)
         }
     }
 
@@ -208,11 +225,12 @@ final class MatchStore: ObservableObject {
     }
 
     private func abbreviation(_ name: String) -> String {
-        String(name.prefix(3)).uppercased(with: Locale(identifier: "tr_TR"))
+        String(name.prefix(3)).uppercased(with: Locale(identifier: "en_US"))
     }
 
     private enum Keys {
         static let favorites = "favoriteTeams"
         static let notifications = "notificationsEnabled"
+        static let widgetMatchID = "widgetMatchID"
     }
 }

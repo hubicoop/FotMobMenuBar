@@ -88,9 +88,13 @@ struct MenuContentView: View {
                 .foregroundStyle(.white.opacity(0.58))
                 .padding(.top, 4)
             ForEach(matches) { match in
-                MatchRow(match: match, leagueName: store.leagueNames[match.leagueId]) {
-                    store.openInFotMob(match)
-                }
+                MatchRow(
+                    match: match,
+                    leagueName: store.leagueNames[match.leagueId],
+                    isInWidget: store.widgetMatchID == match.id,
+                    action: { store.openInFotMob(match) },
+                    toggleWidget: { store.toggleWidget(for: match) }
+                )
             }
         }
     }
@@ -153,7 +157,7 @@ private struct FavoriteSummaryCard: View {
                 Button { openFixture(last) } label: {
                     summaryLine(
                         title: "Last match",
-                        detail: "\(last.home.name) \(last.score) \(last.away.name)"
+                        detail: "\(last.opponentLabel(for: summary.team.id)) · \(last.teamScore(for: summary.team.id))"
                     )
                 }
                 .buttonStyle(.plain)
@@ -162,7 +166,7 @@ private struct FavoriteSummaryCard: View {
                 Button { openFixture(next) } label: {
                     summaryLine(
                         title: "Next",
-                        detail: "\(next.kickoffText) · \(next.home.name) - \(next.away.name)"
+                        detail: "\(next.kickoffDateText) · \(next.opponentLabel(for: summary.team.id))"
                     )
                 }
                 .buttonStyle(.plain)
@@ -206,35 +210,52 @@ private struct FavoriteSummaryCard: View {
 private struct MatchRow: View {
     let match: Match
     let leagueName: String?
+    let isInWidget: Bool
     let action: () -> Void
+    let toggleWidget: () -> Void
 
     var body: some View {
-        Button(action: action) {
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 7) {
-                    if let leagueName {
-                        Text(leagueName)
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
+        HStack(spacing: 6) {
+            Button(action: action) {
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 7) {
+                        if let leagueName {
+                            Text(leagueName)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                        teamLine(name: match.home.name, score: match.home.score)
+                        teamLine(name: match.away.name, score: match.away.score)
                     }
-                    teamLine(name: match.home.name, score: match.home.score)
-                    teamLine(name: match.away.name, score: match.away.score)
-                }
-                Spacer()
-                VStack(spacing: 5) {
-                    Text(match.minuteText)
-                        .font(.system(.caption, design: .rounded, weight: .bold))
-                        .foregroundStyle(match.isLive ? .red : .secondary)
-                    if match.isLive {
-                        Circle().fill(.red).frame(width: 6, height: 6)
+                    Spacer()
+                    VStack(spacing: 5) {
+                        Text(match.minuteText)
+                            .font(.system(.caption, design: .rounded, weight: .bold))
+                            .foregroundStyle(match.isLive ? .red : .secondary)
+                        if match.isLive {
+                            Circle().fill(.red).frame(width: 6, height: 6)
+                        }
                     }
+                    .frame(width: 48)
                 }
-                .frame(width: 48)
+                .contentShape(Rectangle())
             }
-            .padding(12)
-            .background(.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 12))
+            .buttonStyle(.plain)
+
+            if match.isLive {
+                Button(action: toggleWidget) {
+                    Image(systemName: isInWidget ? "rectangle.grid.1x2.fill" : "rectangle.grid.1x2")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(isInWidget ? .blue : .white.opacity(0.45))
+                        .frame(width: 32, height: 32)
+                        .background(.white.opacity(isInWidget ? 0.12 : 0.06), in: RoundedRectangle(cornerRadius: 8))
+                }
+                .buttonStyle(.plain)
+                .help(isInWidget ? "Hide from menu bar widget" : "Show in menu bar widget")
+            }
         }
-        .buttonStyle(.plain)
+        .padding(12)
+        .background(.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 12))
     }
 
     private func teamLine(name: String, score: Int?) -> some View {

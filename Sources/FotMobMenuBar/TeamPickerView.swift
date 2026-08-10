@@ -8,20 +8,20 @@ struct TeamPickerView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("Takımlarım").font(.title2.bold())
+                Text("My Teams").font(.title2.bold())
                 Spacer()
-                Button("Bitti") { dismiss() }
+                Button("Done") { dismiss() }
             }
             .padding()
 
-            TextField("Takım ara: Galatasaray, Liverpool...", text: $searchText)
+            TextField("Search teams: Arsenal, Liverpool...", text: $searchText)
                 .textFieldStyle(.roundedBorder)
                 .padding(.horizontal)
                 .padding(.bottom, 10)
 
             List {
                 if !store.favoriteTeams.isEmpty {
-                    Section("Favoriler") {
+                    Section("Favorites") {
                         ForEach(store.favoriteTeams) { team in
                             HStack {
                                 teamDetails(team.name, league: team.leagueName)
@@ -37,7 +37,7 @@ struct TeamPickerView: View {
                     }
                 }
 
-                Section("Takım ara") {
+                Section("Search Teams") {
                     if store.isSearching {
                         HStack { Spacer(); ProgressView(); Spacer() }
                     }
@@ -45,7 +45,7 @@ struct TeamPickerView: View {
                         Label(error, systemImage: "exclamationmark.triangle")
                             .foregroundStyle(.red)
                     } else if searchText.count >= 2 && store.searchResults.isEmpty && !store.isSearching {
-                        Text("Takım bulunamadı").foregroundStyle(.secondary)
+                        Text("No teams found").foregroundStyle(.secondary)
                     }
                     ForEach(store.searchResults) { suggestion in
                         HStack {

@@ -9,7 +9,7 @@ struct NotificationService: Sendable {
 
     func sendGoal(for match: Match) async {
         let content = UNMutableNotificationContent()
-        content.title = "Gol!  \(match.score)"
+        content.title = "Goal!  \(match.score)"
         content.body = "\(match.home.name) - \(match.away.name)  \(match.minuteText)"
         content.sound = .default
 

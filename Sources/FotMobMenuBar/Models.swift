@@ -145,8 +145,8 @@ extension Match {
         if let short = status.liveTime?.short {
             return short.replacingOccurrences(of: "‎", with: "")
         }
-        if status.finished { return status.reason?.short ?? "MS" }
-        if status.cancelled { return "İptal" }
+        if status.finished { return status.reason?.short ?? "FT" }
+        if status.cancelled { return "Cancelled" }
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         guard let date = formatter.date(from: status.utcTime) else { return "-" }
@@ -157,10 +157,26 @@ extension Match {
 extension TeamFixture {
     var score: String { "\(home.score ?? 0) - \(away.score ?? 0)" }
 
-    var kickoffText: String {
+    var kickoffDateText: String {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         guard let date = formatter.date(from: status.utcTime) else { return "-" }
-        return date.formatted(date: .abbreviated, time: .shortened)
+        let displayFormatter = DateFormatter()
+        displayFormatter.calendar = Calendar(identifier: .gregorian)
+        displayFormatter.locale = Locale(identifier: "en_US_POSIX")
+        displayFormatter.timeZone = .current
+        displayFormatter.dateFormat = "dd.MM.yyyy"
+        return displayFormatter.string(from: date)
+    }
+
+    func opponentLabel(for teamID: Int) -> String {
+        home.id == teamID ? "vs \(away.name)" : "@ \(home.name)"
+    }
+
+    func teamScore(for teamID: Int) -> String {
+        if home.id == teamID {
+            return "\(home.score ?? 0)-\(away.score ?? 0)"
+        }
+        return "\(away.score ?? 0)-\(home.score ?? 0)"
     }
 }

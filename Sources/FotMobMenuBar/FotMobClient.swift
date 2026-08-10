@@ -4,7 +4,7 @@ enum FotMobError: LocalizedError {
     case invalidResponse
 
     var errorDescription: String? {
-        "FotMob verisi alınamadı."
+        "Could not load FotMob data."
     }
 }
 

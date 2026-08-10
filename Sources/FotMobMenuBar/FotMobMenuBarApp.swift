@@ -20,7 +20,7 @@ struct FotMobMenuBarApp: App {
         }
         .menuBarExtraStyle(.window)
 
-        Window("Favori Takımlar", id: "teams") {
+        Window("Favorite Teams", id: "teams") {
             TeamPickerView(store: store)
         }
         .defaultSize(width: 460, height: 520)

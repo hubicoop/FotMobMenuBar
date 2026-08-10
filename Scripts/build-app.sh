@@ -17,7 +17,7 @@ cat > "$APP_DIR/Contents/Info.plist" <<'PLIST'
 <dict>
     <key>CFBundleExecutable</key><string>FotMobMenuBar</string>
     <key>CFBundleIdentifier</key><string>com.local.FotMobMenuBar</string>
-    <key>CFBundleName</key><string>FotMob Menü Çubuğu</string>
+    <key>CFBundleName</key><string>FotMob Menu Bar</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleShortVersionString</key><string>1.0</string>
     <key>CFBundleVersion</key><string>1</string>
@@ -28,4 +28,4 @@ cat > "$APP_DIR/Contents/Info.plist" <<'PLIST'
 PLIST
 
 codesign --force --deep --sign - "$APP_DIR"
-print "Oluşturuldu: $APP_DIR"
+print "Created: $APP_DIR"
