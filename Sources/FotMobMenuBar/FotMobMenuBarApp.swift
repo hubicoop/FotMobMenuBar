@@ -10,11 +10,13 @@ struct FotMobMenuBarApp: App {
                 .task { store.start() }
         } label: {
             if store.menuTitle.isEmpty {
-                FotMobLogoView(original: false)
+                Image(nsImage: FotMobLogoImage.menuBar)
+                    .renderingMode(.template)
                     .frame(width: 18, height: 18)
             } else {
                 HStack(spacing: 4) {
-                    FotMobLogoView(original: false)
+                    Image(nsImage: FotMobLogoImage.menuBar)
+                        .renderingMode(.template)
                         .frame(width: 18, height: 18)
                     Text(store.menuTitle)
                 }

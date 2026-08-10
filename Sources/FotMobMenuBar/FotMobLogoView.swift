@@ -1,4 +1,20 @@
+import AppKit
 import SwiftUI
+
+@MainActor
+enum FotMobLogoImage {
+    static let menuBar: NSImage = {
+        let renderer = ImageRenderer(
+            content: FotMobLogoView(original: false)
+                .frame(width: 18, height: 18)
+        )
+        let image = renderer.nsImage
+            ?? NSImage(systemSymbolName: "sportscourt", accessibilityDescription: "FotMob")!
+        image.size = NSSize(width: 18, height: 18)
+        image.isTemplate = true
+        return image
+    }()
+}
 
 struct FotMobLogoView: View {
     let original: Bool
