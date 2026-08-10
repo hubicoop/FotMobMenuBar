@@ -7,13 +7,9 @@ struct MenuContentView: View {
     var body: some View {
         VStack(spacing: 0) {
             header
-            Divider()
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 10) {
+                LazyVStack(alignment: .leading, spacing: 14) {
                     if !store.favoriteSummaries.isEmpty {
-                        Text("Favori Takımlar")
-                            .font(.caption.bold())
-                            .foregroundStyle(.secondary)
                         ForEach(store.favoriteSummaries) { summary in
                             FavoriteSummaryCard(summary: summary, openFixture: store.openFixtureInFotMob)
                         }
@@ -21,37 +17,54 @@ struct MenuContentView: View {
                     if store.topLeagueMatches.isEmpty && store.liveMatches.isEmpty {
                         noMatchesState
                     } else {
-                        matchSection("Canlı Maçlar", matches: store.liveMatches)
-                        matchSection("Top 5 Lig - Bugün", matches: store.topLeagueMatches)
+                        matchSection("Live Matches", matches: store.liveMatches)
+                        matchSection("Top 5 Leagues - Today", matches: store.topLeagueMatches)
                     }
                 }
-                .padding(12)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 14)
             }
-            Divider()
             footer
         }
-        .frame(width: 390, height: 460)
+        .frame(width: 420, height: 520)
+        .background(Color(red: 0.075, green: 0.075, blue: 0.075))
+        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .stroke(.white.opacity(0.12), lineWidth: 1)
+        }
+        .preferredColorScheme(.dark)
     }
 
     private var header: some View {
-        HStack {
+        HStack(spacing: 10) {
+            Image(systemName: "soccerball")
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(.white)
+                .frame(width: 22, height: 22)
+                .background(.blue, in: RoundedRectangle(cornerRadius: 6))
             VStack(alignment: .leading, spacing: 2) {
-                Text("Bugünün Maçları")
-                    .font(.headline)
-                Text(store.isRefreshing ? "Skorlar yenileniyor" : "Canlı skor ve gol bildirimleri")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                Text("Today's Matches")
+                    .font(.system(size: 19, weight: .bold, design: .rounded))
+                Text(store.isRefreshing ? "Refreshing scores" : "Live scores & goal notifications")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.white.opacity(0.58))
             }
             Spacer()
             Button {
                 Task { await store.refresh() }
             } label: {
                 Image(systemName: "arrow.clockwise")
+                    .font(.system(size: 13, weight: .bold))
+                    .frame(width: 30, height: 30)
+                    .background(.white.opacity(0.1), in: Circle())
             }
-            .buttonStyle(.borderless)
+            .buttonStyle(.plain)
             .disabled(store.isRefreshing)
         }
-        .padding(14)
+        .padding(.horizontal, 24)
+        .padding(.top, 24)
+        .padding(.bottom, 6)
     }
 
     private var noMatchesState: some View {
@@ -59,20 +72,20 @@ struct MenuContentView: View {
             Image(systemName: "calendar")
                 .font(.system(size: 34))
                 .foregroundStyle(.secondary)
-            Text("Bugün maç yok").font(.headline)
-            Text("Top 5 ligde veya canlı olarak oynanan bir maç bulunmuyor.")
+            Text("No matches today").font(.headline)
+            Text("There are no live or Top 5 league matches right now.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
-        .frame(height: 300)
+        .frame(maxWidth: .infinity, minHeight: 150)
     }
 
     @ViewBuilder
     private func matchSection(_ title: String, matches: [Match]) -> some View {
         if !matches.isEmpty {
             Text(title)
-                .font(.caption.bold())
-                .foregroundStyle(.secondary)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.58))
                 .padding(.top, 4)
             ForEach(matches) { match in
                 MatchRow(match: match, leagueName: store.leagueNames[match.leagueId]) {
@@ -84,14 +97,29 @@ struct MenuContentView: View {
 
     private var footer: some View {
         HStack {
-            Button("Takımlar", action: openTeamPicker)
-            Toggle("Gol bildirimleri", isOn: $store.notificationsEnabled)
+            Button(action: openTeamPicker) {
+                Label("Teams", systemImage: "person.2.fill")
+                    .font(.system(size: 12, weight: .semibold))
+                    .padding(.horizontal, 11)
+                    .padding(.vertical, 7)
+                    .background(.white.opacity(0.1), in: Capsule())
+            }
+            .buttonStyle(.plain)
+            Toggle("Goal notifications", isOn: $store.notificationsEnabled)
                 .toggleStyle(.checkbox)
+                .font(.system(size: 12))
             Spacer()
-            Button("Çıkış") { NSApplication.shared.terminate(nil) }
+            Button("Quit") { NSApplication.shared.terminate(nil) }
+                .buttonStyle(.plain)
+                .font(.system(size: 12))
+                .foregroundStyle(.white.opacity(0.65))
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 7))
         }
-        .font(.caption)
-        .padding(12)
+        .padding(.horizontal, 24)
+        .padding(.top, 10)
+        .padding(.bottom, 24)
     }
 
     private func openTeamPicker() {
@@ -103,14 +131,28 @@ struct MenuContentView: View {
 private struct FavoriteSummaryCard: View {
     let summary: FavoriteTeamSummary
     let openFixture: (TeamFixture) -> Void
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(summary.team.name).font(.headline)
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 12) {
+                AsyncImage(url: logoURL) { image in
+                    image.resizable().scaledToFit()
+                } placeholder: {
+                    Image(systemName: "shield.fill")
+                }
+                .frame(width: 24, height: 24)
+                .padding(7)
+                .background(.clear, in: Circle())
+                .overlay { Circle().stroke(foregroundColor.opacity(0.9), lineWidth: 1.5) }
+
+                Text(summary.team.name)
+                    .font(.system(size: 17, weight: .bold, design: .rounded))
+            }
             if let last = summary.lastMatch {
                 Button { openFixture(last) } label: {
                     summaryLine(
-                        title: "Son maç",
+                        title: "Last match",
                         detail: "\(last.home.name) \(last.score) \(last.away.name)"
                     )
                 }
@@ -119,26 +161,45 @@ private struct FavoriteSummaryCard: View {
             if let next = summary.nextMatch {
                 Button { openFixture(next) } label: {
                     summaryLine(
-                        title: "Sıradaki",
+                        title: "Next",
                         detail: "\(next.kickoffText) · \(next.home.name) - \(next.away.name)"
                     )
                 }
                 .buttonStyle(.plain)
             }
         }
-        .padding(12)
+        .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.blue.opacity(0.09), in: RoundedRectangle(cornerRadius: 12))
+        .foregroundStyle(foregroundColor)
+        .background(backgroundColor, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(.white.opacity(0.12), lineWidth: 0.5)
+        }
     }
 
     private func summaryLine(title: String, detail: String) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(title)
-                .font(.caption.bold())
-                .foregroundStyle(.secondary)
-                .frame(width: 52, alignment: .leading)
-            Text(detail).font(.caption).lineLimit(1)
+                .font(.system(size: 12))
+                .foregroundStyle(foregroundColor.opacity(0.68))
+                .frame(width: 72, alignment: .leading)
+            Text(detail).font(.system(size: 12)).lineLimit(1)
         }
+    }
+
+    private var logoURL: URL? {
+        URL(string: "https://images.fotmob.com/image_resources/logo/teamlogo/\(summary.team.id).png")
+    }
+
+    private var backgroundColor: Color {
+        guard let colors = summary.colors else { return Color(red: 0.03, green: 0.29, blue: 0.53) }
+        return Color(css: colorScheme == .dark ? colors.darkMode : colors.lightMode)
+    }
+
+    private var foregroundColor: Color {
+        guard let colors = summary.colors else { return .white }
+        return Color(css: colorScheme == .dark ? colors.fontDarkMode : colors.fontLightMode)
     }
 }
 
@@ -171,7 +232,7 @@ private struct MatchRow: View {
                 .frame(width: 48)
             }
             .padding(12)
-            .background(.quaternary.opacity(0.45), in: RoundedRectangle(cornerRadius: 12))
+            .background(.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
     }
@@ -182,6 +243,35 @@ private struct MatchRow: View {
             Spacer()
             Text(score.map(String.init) ?? "-")
                 .font(.system(.body, design: .rounded, weight: .bold))
+        }
+    }
+}
+
+private extension Color {
+    init(css value: String) {
+        let cleaned = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        if cleaned.hasPrefix("#") {
+            let hex = String(cleaned.dropFirst())
+            var number: UInt64 = 0
+            if Scanner(string: hex).scanHexInt64(&number), hex.count == 6 {
+                self.init(
+                    red: Double((number >> 16) & 0xff) / 255,
+                    green: Double((number >> 8) & 0xff) / 255,
+                    blue: Double(number & 0xff) / 255
+                )
+                return
+            }
+        }
+
+        let values = cleaned
+            .replacingOccurrences(of: "rgba(", with: "")
+            .replacingOccurrences(of: ")", with: "")
+            .split(separator: ",")
+            .compactMap { Double($0.trimmingCharacters(in: .whitespaces)) }
+        if values.count == 4 {
+            self.init(red: values[0] / 255, green: values[1] / 255, blue: values[2] / 255, opacity: values[3])
+        } else {
+            self = .white
         }
     }
 }

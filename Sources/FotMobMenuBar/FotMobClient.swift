@@ -55,7 +55,8 @@ struct FotMobClient: Sendable {
         return FavoriteTeamSummary(
             team: team,
             lastMatch: response.fixtures.allFixtures.lastMatch,
-            nextMatch: response.fixtures.allFixtures.nextMatch
+            nextMatch: response.fixtures.allFixtures.nextMatch,
+            colors: response.overview?.teamColors
         )
     }
 
