@@ -41,11 +41,8 @@ struct MenuContentView: View {
 
     private var header: some View {
         HStack(spacing: 10) {
-            Image(systemName: "soccerball")
-                .font(.system(size: 12, weight: .bold))
-                .foregroundStyle(.white)
+            FotMobLogoView(original: true)
                 .frame(width: 22, height: 22)
-                .background(.blue, in: RoundedRectangle(cornerRadius: 6))
             VStack(alignment: .leading, spacing: 2) {
                 Text("Today's Matches")
                     .font(.system(size: 19, weight: .bold, design: .rounded))
