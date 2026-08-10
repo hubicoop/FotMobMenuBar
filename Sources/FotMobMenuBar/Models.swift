@@ -55,6 +55,7 @@ struct MatchFeed: Sendable {
 struct TeamResponse: Decodable, Sendable {
     let fixtures: TeamFixtures
     let overview: TeamOverview?
+    let history: TeamHistory?
 }
 
 struct TeamOverview: Decodable, Sendable {
@@ -66,6 +67,22 @@ struct TeamColors: Decodable, Sendable {
     let lightMode: String
     let fontDarkMode: String
     let fontLightMode: String
+}
+
+struct TeamHistory: Decodable, Sendable {
+    let teamColorMap: TeamColorMap?
+}
+
+struct TeamColorMap: Decodable, Sendable {
+    let color: String?
+    let colorAlternate: String?
+    let colorAway: String?
+    let colorAwayAlternate: String?
+}
+
+enum AppTheme: String, CaseIterable, Sendable {
+    case teamColors
+    case darkMinimal
 }
 
 struct TeamFixtures: Decodable, Sendable {
@@ -97,6 +114,7 @@ struct FavoriteTeamSummary: Identifiable, Sendable {
     let lastMatch: TeamFixture?
     let nextMatch: TeamFixture?
     let colors: TeamColors?
+    let colorMap: TeamColorMap?
 
     var id: Int { team.id }
 }

@@ -11,7 +11,11 @@ struct MenuContentView: View {
                 LazyVStack(alignment: .leading, spacing: 14) {
                     if !store.favoriteSummaries.isEmpty {
                         ForEach(store.favoriteSummaries) { summary in
-                            FavoriteSummaryCard(summary: summary, openFixture: store.openFixtureInFotMob)
+                            FavoriteSummaryCard(
+                                summary: summary,
+                                theme: store.theme,
+                                openFixture: store.openFixtureInFotMob
+                            )
                         }
                     }
                     if store.topLeagueMatches.isEmpty && store.liveMatches.isEmpty {
@@ -113,6 +117,14 @@ struct MenuContentView: View {
                 .toggleStyle(.checkbox)
                 .font(.system(size: 12))
             Spacer()
+            Button(action: store.toggleTheme) {
+                Image(systemName: store.theme == .darkMinimal ? "moon.fill" : "paintpalette.fill")
+                    .font(.system(size: 12, weight: .semibold))
+                    .frame(width: 28, height: 28)
+                    .background(.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 7))
+            }
+            .buttonStyle(.plain)
+            .help(store.theme == .darkMinimal ? "Switch to Team Colors" : "Switch to Dark Minimal")
             Button("Quit") { NSApplication.shared.terminate(nil) }
                 .buttonStyle(.plain)
                 .font(.system(size: 12))
@@ -134,6 +146,7 @@ struct MenuContentView: View {
 
 private struct FavoriteSummaryCard: View {
     let summary: FavoriteTeamSummary
+    let theme: AppTheme
     let openFixture: (TeamFixture) -> Void
     @Environment(\.colorScheme) private var colorScheme
 
@@ -159,6 +172,10 @@ private struct FavoriteSummaryCard: View {
                         title: "Last match",
                         detail: "\(last.opponentLabel(for: summary.team.id)) · \(last.teamScore(for: summary.team.id))"
                     )
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 9)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(actionBackgroundColor, in: RoundedRectangle(cornerRadius: 9))
                 }
                 .buttonStyle(.plain)
             }
@@ -168,6 +185,10 @@ private struct FavoriteSummaryCard: View {
                         title: "Next",
                         detail: "\(next.kickoffDateText) · \(next.opponentLabel(for: summary.team.id))"
                     )
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 9)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(actionBackgroundColor, in: RoundedRectangle(cornerRadius: 9))
                 }
                 .buttonStyle(.plain)
             }
@@ -186,9 +207,12 @@ private struct FavoriteSummaryCard: View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(title)
                 .font(.system(size: 12))
-                .foregroundStyle(foregroundColor.opacity(0.68))
+                .foregroundStyle(actionForegroundColor.opacity(0.68))
                 .frame(width: 72, alignment: .leading)
-            Text(detail).font(.system(size: 12)).lineLimit(1)
+            Text(detail)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(actionForegroundColor)
+                .lineLimit(1)
         }
     }
 
@@ -197,13 +221,33 @@ private struct FavoriteSummaryCard: View {
     }
 
     private var backgroundColor: Color {
+        if theme == .darkMinimal { return .white.opacity(0.07) }
         guard let colors = summary.colors else { return Color(red: 0.03, green: 0.29, blue: 0.53) }
         return Color(css: colorScheme == .dark ? colors.darkMode : colors.lightMode)
     }
 
     private var foregroundColor: Color {
+        if theme == .darkMinimal { return .white }
         guard let colors = summary.colors else { return .white }
         return Color(css: colorScheme == .dark ? colors.fontDarkMode : colors.fontLightMode)
+    }
+
+    private var actionBackgroundColor: Color {
+        if theme == .darkMinimal { return .white.opacity(0.08) }
+        guard let colorMap = summary.colorMap,
+              let color = actionColorString(colorMap) else { return .black.opacity(0.2) }
+        return Color(css: color)
+    }
+
+    private var actionForegroundColor: Color {
+        if theme == .darkMinimal { return .white }
+        guard let colorMap = summary.colorMap,
+              let color = actionColorString(colorMap) else { return foregroundColor }
+        return Color.contrastingText(forCSS: color)
+    }
+
+    private func actionColorString(_ colorMap: TeamColorMap) -> String? {
+        colorScheme == .dark ? colorMap.colorAwayAlternate : colorMap.colorAway
     }
 }
 
@@ -294,5 +338,24 @@ private extension Color {
         } else {
             self = .white
         }
+    }
+
+    static func contrastingText(forCSS value: String) -> Color {
+        guard let components = cssComponents(value) else { return .white }
+        let luminance = (0.2126 * components.red) + (0.7152 * components.green) + (0.0722 * components.blue)
+        return luminance > 0.62 ? .black : .white
+    }
+
+    private static func cssComponents(_ value: String) -> (red: Double, green: Double, blue: Double)? {
+        let cleaned = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard cleaned.hasPrefix("#") else { return nil }
+        let hex = String(cleaned.dropFirst())
+        var number: UInt64 = 0
+        guard Scanner(string: hex).scanHexInt64(&number), hex.count == 6 else { return nil }
+        return (
+            Double((number >> 16) & 0xff) / 255,
+            Double((number >> 8) & 0xff) / 255,
+            Double(number & 0xff) / 255
+        )
     }
 }

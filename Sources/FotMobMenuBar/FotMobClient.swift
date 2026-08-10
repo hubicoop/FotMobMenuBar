@@ -56,7 +56,8 @@ struct FotMobClient: Sendable {
             team: team,
             lastMatch: response.fixtures.allFixtures.lastMatch,
             nextMatch: response.fixtures.allFixtures.nextMatch,
-            colors: response.overview?.teamColors
+            colors: response.overview?.teamColors,
+            colorMap: response.history?.teamColorMap
         )
     }
 
