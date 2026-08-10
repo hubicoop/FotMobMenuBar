@@ -15,9 +15,6 @@ final class MatchStore: ObservableObject {
     @Published private(set) var isSearching = false
     @Published private(set) var isRefreshing = false
     @Published private(set) var errorMessage: String?
-    @Published var theme: AppTheme {
-        didSet { defaults.set(theme.rawValue, forKey: Keys.theme) }
-    }
     @Published var notificationsEnabled: Bool {
         didSet {
             defaults.set(notificationsEnabled, forKey: Keys.notifications)
@@ -40,7 +37,6 @@ final class MatchStore: ObservableObject {
         self.client = client
         self.defaults = defaults
         widgetMatchID = defaults.object(forKey: Keys.widgetMatchID) as? Int
-        theme = AppTheme(rawValue: defaults.string(forKey: Keys.theme) ?? "") ?? .teamColors
         notificationsEnabled = defaults.object(forKey: Keys.notifications) as? Bool ?? true
         if let data = defaults.data(forKey: Keys.favorites),
            let teams = try? JSONDecoder().decode([FavoriteTeam].self, from: data) {
@@ -187,10 +183,6 @@ final class MatchStore: ObservableObject {
         }
     }
 
-    func toggleTheme() {
-        theme = theme == .teamColors ? .darkMinimal : .teamColors
-    }
-
     func openFixtureInFotMob(_ fixture: TeamFixture) {
         guard let url = URL(string: fixture.pageUrl, relativeTo: URL(string: "https://www.fotmob.com"))?.absoluteURL else { return }
         NSWorkspace.shared.open(url)
@@ -240,6 +232,5 @@ final class MatchStore: ObservableObject {
         static let favorites = "favoriteTeams"
         static let notifications = "notificationsEnabled"
         static let widgetMatchID = "widgetMatchID"
-        static let theme = "appTheme"
     }
 }

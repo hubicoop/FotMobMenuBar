@@ -13,7 +13,6 @@ struct MenuContentView: View {
                         ForEach(store.favoriteSummaries) { summary in
                             FavoriteSummaryCard(
                                 summary: summary,
-                                theme: store.theme,
                                 openFixture: store.openFixtureInFotMob
                             )
                         }
@@ -117,14 +116,6 @@ struct MenuContentView: View {
                 .toggleStyle(.checkbox)
                 .font(.system(size: 12))
             Spacer()
-            Button(action: store.toggleTheme) {
-                Image(systemName: store.theme == .darkMinimal ? "moon.fill" : "paintpalette.fill")
-                    .font(.system(size: 12, weight: .semibold))
-                    .frame(width: 28, height: 28)
-                    .background(.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 7))
-            }
-            .buttonStyle(.plain)
-            .help(store.theme == .darkMinimal ? "Switch to Team Colors" : "Switch to Dark Minimal")
             Button("Quit") { NSApplication.shared.terminate(nil) }
                 .buttonStyle(.plain)
                 .font(.system(size: 12))
@@ -146,9 +137,7 @@ struct MenuContentView: View {
 
 private struct FavoriteSummaryCard: View {
     let summary: FavoriteTeamSummary
-    let theme: AppTheme
     let openFixture: (TeamFixture) -> Void
-    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -161,7 +150,7 @@ private struct FavoriteSummaryCard: View {
                 .frame(width: 24, height: 24)
                 .padding(7)
                 .background(.clear, in: Circle())
-                .overlay { Circle().stroke(foregroundColor.opacity(0.9), lineWidth: 1.5) }
+                .overlay { Circle().stroke(.white.opacity(0.9), lineWidth: 1.5) }
 
                 Text(summary.team.name)
                     .font(.system(size: 17, weight: .bold, design: .rounded))
@@ -175,7 +164,7 @@ private struct FavoriteSummaryCard: View {
                     .padding(.horizontal, 10)
                     .padding(.vertical, 9)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(actionBackgroundColor, in: RoundedRectangle(cornerRadius: 9))
+                    .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 9))
                 }
                 .buttonStyle(.plain)
             }
@@ -188,15 +177,15 @@ private struct FavoriteSummaryCard: View {
                     .padding(.horizontal, 10)
                     .padding(.vertical, 9)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(actionBackgroundColor, in: RoundedRectangle(cornerRadius: 9))
+                    .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 9))
                 }
                 .buttonStyle(.plain)
             }
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .foregroundStyle(foregroundColor)
-        .background(backgroundColor, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .foregroundStyle(.white)
+        .background(.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(.white.opacity(0.12), lineWidth: 0.5)
@@ -207,47 +196,17 @@ private struct FavoriteSummaryCard: View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(title)
                 .font(.system(size: 12))
-                .foregroundStyle(actionForegroundColor.opacity(0.68))
+                .foregroundStyle(.white.opacity(0.68))
                 .frame(width: 72, alignment: .leading)
             Text(detail)
                 .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(actionForegroundColor)
+                .foregroundStyle(.white)
                 .lineLimit(1)
         }
     }
 
     private var logoURL: URL? {
         URL(string: "https://images.fotmob.com/image_resources/logo/teamlogo/\(summary.team.id).png")
-    }
-
-    private var backgroundColor: Color {
-        if theme == .darkMinimal { return .white.opacity(0.07) }
-        guard let colors = summary.colors else { return Color(red: 0.03, green: 0.29, blue: 0.53) }
-        return Color(css: colorScheme == .dark ? colors.darkMode : colors.lightMode)
-    }
-
-    private var foregroundColor: Color {
-        if theme == .darkMinimal { return .white }
-        guard let colors = summary.colors else { return .white }
-        return Color(css: colorScheme == .dark ? colors.fontDarkMode : colors.fontLightMode)
-    }
-
-    private var actionBackgroundColor: Color {
-        if theme == .darkMinimal { return .white.opacity(0.08) }
-        guard let colorMap = summary.colorMap,
-              let color = actionColorString(colorMap) else { return .black.opacity(0.2) }
-        return Color(css: color)
-    }
-
-    private var actionForegroundColor: Color {
-        if theme == .darkMinimal { return .white }
-        guard let colorMap = summary.colorMap,
-              let color = actionColorString(colorMap) else { return foregroundColor }
-        return Color.contrastingText(forCSS: color)
-    }
-
-    private func actionColorString(_ colorMap: TeamColorMap) -> String? {
-        colorScheme == .dark ? colorMap.colorAwayAlternate : colorMap.colorAway
     }
 }
 
@@ -309,53 +268,5 @@ private struct MatchRow: View {
             Text(score.map(String.init) ?? "-")
                 .font(.system(.body, design: .rounded, weight: .bold))
         }
-    }
-}
-
-private extension Color {
-    init(css value: String) {
-        let cleaned = value.trimmingCharacters(in: .whitespacesAndNewlines)
-        if cleaned.hasPrefix("#") {
-            let hex = String(cleaned.dropFirst())
-            var number: UInt64 = 0
-            if Scanner(string: hex).scanHexInt64(&number), hex.count == 6 {
-                self.init(
-                    red: Double((number >> 16) & 0xff) / 255,
-                    green: Double((number >> 8) & 0xff) / 255,
-                    blue: Double(number & 0xff) / 255
-                )
-                return
-            }
-        }
-
-        let values = cleaned
-            .replacingOccurrences(of: "rgba(", with: "")
-            .replacingOccurrences(of: ")", with: "")
-            .split(separator: ",")
-            .compactMap { Double($0.trimmingCharacters(in: .whitespaces)) }
-        if values.count == 4 {
-            self.init(red: values[0] / 255, green: values[1] / 255, blue: values[2] / 255, opacity: values[3])
-        } else {
-            self = .white
-        }
-    }
-
-    static func contrastingText(forCSS value: String) -> Color {
-        guard let components = cssComponents(value) else { return .white }
-        let luminance = (0.2126 * components.red) + (0.7152 * components.green) + (0.0722 * components.blue)
-        return luminance > 0.62 ? .black : .white
-    }
-
-    private static func cssComponents(_ value: String) -> (red: Double, green: Double, blue: Double)? {
-        let cleaned = value.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard cleaned.hasPrefix("#") else { return nil }
-        let hex = String(cleaned.dropFirst())
-        var number: UInt64 = 0
-        guard Scanner(string: hex).scanHexInt64(&number), hex.count == 6 else { return nil }
-        return (
-            Double((number >> 16) & 0xff) / 255,
-            Double((number >> 8) & 0xff) / 255,
-            Double(number & 0xff) / 255
-        )
     }
 }
